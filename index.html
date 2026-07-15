@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marcus Fernando — AI & Systems</title>
+<meta name="description" content="Orquestrando agentes, dados e ecossistemas. Portfólio de Marcus Fernando: IA, multi-agentes, RAG e full-stack.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000000; --panel:#0A0A0A; --term:#050505; --border:#1C1C1C;
+    --neon:#20C20E; --glow:#39FF14; --text:#E5E5E5; --muted:#888888;
+    --cyan:#00F0FF; --pink:#FF007F; --purple:#A020F0; --gold:#FFD700;
+    --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
+
+  /* CRT scanlines */
+  body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
+    background:repeating-linear-gradient(0deg,rgba(32,194,14,.02) 0 1px,transparent 1px 3px)}
+
+  /* ── boot intro ── */
+  #boot{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;
+    align-items:center;justify-content:center;transition:opacity .6s}
+  #boot.off{opacity:0;pointer-events:none}
+  #boot pre{font-family:var(--mono);color:var(--neon);font-size:clamp(11px,2vw,15px);
+    text-shadow:0 0 4px rgba(32,194,14,.6),0 0 12px rgba(32,194,14,.3)}
+
+  /* ── graph canvas (fixed background) ── */
+  #graph{position:fixed;inset:0;z-index:0;cursor:grab}
+  #graph.grabbing{cursor:grabbing}
+
+  /* ── header ── */
+  header{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
+    justify-content:space-between;padding:14px 24px;font-family:var(--mono);font-size:13px;
+    background:linear-gradient(180deg,rgba(0,0,0,.92),rgba(0,0,0,.55) 70%,transparent);
+    }
+  .prompt{color:var(--neon);text-shadow:0 0 4px rgba(32,194,14,.6)}
+  .prompt .cur{animation:blink 1s step-end infinite}
+  @keyframes blink{50%{opacity:0}}
+  nav a{color:var(--muted);text-decoration:none;margin-left:18px;transition:.2s}
+  nav a:hover{color:var(--glow);text-shadow:0 0 8px rgba(57,255,20,.5)}
+
+  /* ── hero ── */
+  main{position:relative;z-index:2;pointer-events:none}
+  main a,main .card,main .panel-inner{pointer-events:auto}
+  #hero{height:100vh;display:flex;flex-direction:column;justify-content:flex-end;
+    padding:0 24px 12vh 24px;max-width:980px}
+  #hero h1{font-family:var(--mono);font-size:clamp(22px,4.6vw,44px);color:var(--text);
+    text-shadow:0 0 18px rgba(32,194,14,.25)}
+  #hero h1 .typed{color:var(--neon);text-shadow:0 0 6px rgba(32,194,14,.7),0 0 16px rgba(32,194,14,.35)}
+  #hero p{font-family:var(--mono);color:var(--muted);margin-top:10px;font-size:clamp(12px,1.6vw,15px)}
+  #hero .hint{margin-top:26px;font-size:12px;color:#555;font-family:var(--mono)}
+  #hero .hint b{color:var(--neon);font-weight:400}
+
+  /* ── sections ── */
+  section{min-height:88vh;display:flex;align-items:center;padding:10vh 24px}
+  .card{max-width:560px;background:rgba(10,10,10,.82);backdrop-filter:blur(6px);
+    border:1px solid var(--border);border-radius:8px;padding:30px 32px;
+    box-shadow:0 0 0 1px rgba(32,194,14,.06),0 12px 50px rgba(0,0,0,.7);
+    opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}
+  section.vis .card{opacity:1;transform:none}
+  .card .tag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .card h2{font-family:var(--mono);font-size:clamp(19px,3vw,27px);margin:10px 0 14px}
+  .card p{color:#b9b9b9;line-height:1.65;font-size:14.5px}
+  .card ul{list-style:none;margin-top:14px}
+  .card li{color:#b9b9b9;font-size:13.5px;line-height:1.7;padding-left:18px;position:relative}
+  .card li::before{content:'▸';position:absolute;left:0;font-family:var(--mono)}
+  .s-cyan .tag,.s-cyan li::before{color:var(--cyan)} .s-cyan .card{border-top:2px solid var(--cyan)}
+  .s-pink .tag,.s-pink li::before{color:var(--pink)} .s-pink .card{border-top:2px solid var(--pink)}
+  .s-purple .tag,.s-purple li::before{color:var(--purple)} .s-purple .card{border-top:2px solid var(--purple)}
+  .s-gold .tag,.s-gold li::before{color:var(--gold)} .s-gold .card{border-top:2px solid var(--gold)}
+  section:nth-of-type(even) .card{margin-left:auto}
+
+  /* ── contato / terminal ── */
+  #contato{min-height:70vh}
+  .term{max-width:620px;width:100%;background:var(--term);border:1px solid var(--border);
+    border-radius:8px;font-family:var(--mono);font-size:13.5px;overflow:hidden;
+    box-shadow:0 0 30px rgba(32,194,14,.08)}
+  .term-bar{background:#0d0d0d;padding:8px 14px;border-bottom:1px solid var(--border);
+    color:#555;font-size:11px}
+  .term-body{padding:20px 22px;line-height:2.05}
+  .term-body .p{color:var(--neon)}
+  .term-body a{color:var(--text);text-decoration:none;border-bottom:1px dashed #333}
+  .term-body a:hover{color:var(--glow);border-color:var(--glow);text-shadow:0 0 8px rgba(57,255,20,.5)}
+  .term-body .c{color:#555}
+
+  /* ── project drawer ── */
+  #drawer{position:fixed;top:0;right:0;bottom:0;width:min(400px,92vw);z-index:200;
+    background:rgba(8,8,8,.97);border-left:1px solid var(--border);padding:0;
+    transform:translateX(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+  #drawer.open{transform:none;box-shadow:-30px 0 80px rgba(0,0,0,.8)}
+  .panel-inner{padding:26px 28px;font-family:var(--mono)}
+  #d-close{background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);
+    padding:4px 10px;cursor:pointer;border-radius:4px;float:right}
+  #d-close:hover{color:var(--glow);border-color:var(--glow)}
+  #d-cat{font-size:11px;letter-spacing:.15em;text-transform:uppercase}
+  #d-title{font-size:22px;margin:14px 0 4px;color:var(--text)}
+  #d-desc{font-family:var(--sans);color:#b9b9b9;font-size:14px;line-height:1.65;margin:14px 0}
+  #d-stack{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}
+  #d-stack span{font-size:11px;border:1px solid var(--border);color:var(--muted);
+    padding:3px 9px;border-radius:99px}
+  #d-link{display:inline-block;margin-top:8px;color:var(--neon);text-decoration:none;
+    border:1px solid rgba(32,194,14,.4);padding:8px 16px;border-radius:5px;font-size:13px}
+  #d-link:hover{background:rgba(32,194,14,.08);color:var(--glow);border-color:var(--glow)}
+  #d-link.off{opacity:.45;pointer-events:none}
+
+  footer{position:relative;z-index:2;text-align:center;padding:34px;font-family:var(--mono);
+    font-size:11.5px;color:#444}
+  footer b{color:#20C20E;font-weight:400}
+
+  @media(max-width:640px){
+    nav a{margin-left:10px;font-size:11px}
+    section:nth-of-type(even) .card{margin-left:0}
+  }
+</style>
+</head>
+<body>
+
+<div id="boot"><pre id="bootlines"></pre></div>
+<canvas id="graph"></canvas>
+
+<header>
+  <div class="prompt">marcus@eco:~$ <span id="hpath">./portfolio</span><span class="cur">_</span></div>
+  <nav>
+    <a href="#hero">~/</a><a href="#ia">ia</a><a href="#saas">saas</a><a href="#pesquisa">pesquisa</a><a href="#contato">contato</a>
+  </nav>
+</header>
+
+<main>
+  <div id="hero">
+    <h1>&gt; <span class="typed" id="typed"></span><span class="cur" style="color:var(--neon)">_</span></h1>
+    <p>// AI &amp; Systems · multi-agentes · RAG · full-stack</p>
+    <p class="hint">o grafo é vivo: <b>arraste</b> os nós · <b>clique</b> para abrir um projeto · <b>role</b> para explorar por área</p>
+  </div>
+
+  <section id="ia" class="s-cyan" data-focus="cyan">
+    <div class="card">
+      <div class="tag">■ ia &amp; agentes</div>
+      <h2>Ecossistemas que trabalham sozinhos</h2>
+      <p>Construo sistemas onde agentes de IA operam 24/7: captação de conhecimento, memória vetorial e orquestração multi-agente com git como protocolo.</p>
+      <ul>
+        <li><b>ECO</b> — ecossistema pessoal: scraping → RAG → agentes na VPS (Telegram, cron, curadoria autônoma)</li>
+        <li><b>agent-kit</b> — 40 skills + protocolo de coordenação p/ mesas de agentes (Claude, Gemini, DeepSeek)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="saas" class="s-pink" data-focus="pink">
+    <div class="card">
+      <div class="tag">■ saas &amp; full-stack</div>
+      <h2>Do matching engine ao pixel</h2>
+      <p>Produto de verdade: matching semântico de licitações farmacêuticas em produção, e MVPs web com arquitetura serverless.</p>
+      <ul>
+        <li><b>BH-Licit</b> — SaaS de licitações: embeddings + LLM judge p/ matching fuzzy de medicamentos</li>
+        <li><b>Clones YouTube / WhatsApp</b> — Next.js 16 + TypeScript + Tailwind</li>
+        <li><b>ResumeQuest · Batman Tickets</b> — apps e landing pages performáticas</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="pesquisa" class="s-purple" data-focus="purple gold">
+    <div class="card">
+      <div class="tag">■ deep learning &amp; pesquisa</div>
+      <h2>Onde a teoria encosta no osso</h2>
+      <p>Visão computacional aplicada à saúde e IA educacional com método socrático — pesquisa com código que roda.</p>
+      <ul>
+        <li><b>Bone-Age</b> — estimativa de idade óssea em radiografias pediátricas (CNN)</li>
+        <li><b>SocraticBrain</b> — assistente de estudo RAG que pergunta antes de responder (TCC)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="contato">
+    <div class="term">
+      <div class="term-bar">marcus@eco: ~/contato</div>
+      <div class="term-body">
+        <div><span class="p">$</span> contact --list</div>
+        <div><span class="c">github</span>&nbsp;&nbsp;&nbsp;→ <a href="https://github.com/MarcusFernando" target="_blank" rel="noopener">github.com/MarcusFernando</a></div>
+        <div><span class="c">email</span>&nbsp;&nbsp;&nbsp;&nbsp;→ <a href="mailto:marcusfernandotj@gmail.com">marcusfernandotj@gmail.com</a></div>
+        <div><span class="c">status</span>&nbsp;&nbsp;&nbsp;→ <span style="color:var(--neon)">aberto a projetos e conversas ●</span></div>
+        <div style="margin-top:10px"><span class="p">$</span> <span class="cur" style="color:var(--neon)">_</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<aside id="drawer">
+  <div class="panel-inner">
+    <button id="d-close">esc</button>
+    <div id="d-cat"></div>
+    <h3 id="d-title"></h3>
+    <p id="d-desc"></p>
+    <div id="d-stack"></div>
+    <a id="d-link" href="#" target="_blank" rel="noopener">ver no github →</a>
+  </div>
+</aside>
+
+<footer>grafo de conhecimento vivo · construído por uma mesa de agentes orquestrada por <b>marcus@eco</b> · 2026</footer>
+
+<script>
+/* ═══════════ DATA — o grafo de conhecimento ═══════════ */
+const CAT = {
+  hub:   {c:'#FFFFFF', name:'hub'},
+  cyan:  {c:'#00F0FF', name:'ia & agentes'},
+  pink:  {c:'#FF007F', name:'saas & full-stack'},
+  purple:{c:'#A020F0', name:'deep learning'},
+  gold:  {c:'#FFD700', name:'pesquisa & notas'},
+  skill: {c:'#2f7a28', name:'skill'},
+};
+const NODES = [
+  {id:'marcus', label:'marcus', cat:'hub', r:15, desc:'Hub central — AI & Systems. Orquestro mesas de agentes que constroem, metabolizam conhecimento e operam produtos.', stack:['orquestração','arquitetura','integração']},
+  // projetos
+  {id:'eco', label:'ECO', cat:'cyan', r:11, desc:'Ecossistema pessoal de IA: captação (vídeos, PDFs, cursos) → RAG (embeddings + reranker) → agentes 24/7 na VPS com Telegram, cron e curadoria autônoma de conhecimento.', stack:['Python','RAG','sqlite-vec','Whisper','systemd','Telegram'], repo:null, priv:true},
+  {id:'kit', label:'agent-kit', cat:'cyan', r:9.5, desc:'40 skills + 20 personas + protocolo de coordenação multi-agente (git worktrees, task board, handoffs). O sistema operacional da minha mesa de agentes.', stack:['Claude Code','Gemini','skills','git'], repo:null, priv:true},
+  {id:'bhl', label:'BH-Licit', cat:'pink', r:10.5, desc:'SaaS de licitações farmacêuticas: matching semântico de editais com embeddings + LLM judge, avaliação com gabarito (EDD) e pipeline em produção.', stack:['Python','embeddings','LLM judge','FastAPI'], repo:null, priv:true},
+  {id:'rq', label:'ResumeQuest', cat:'pink', r:8, desc:'App de backlog de jogos gamificado — scaffold Next.js com 5 rotas, build limpo.', stack:['Next.js','TypeScript','Tailwind'], repo:'https://github.com/MarcusFernando/portfolio'},
+  {id:'wac', label:'WhatsApp Clone', cat:'pink', r:8, desc:'Interface dark do WhatsApp Web: sidebar de conversas, popup de emojis, indicador "digitando…".', stack:['Next.js 16','TypeScript','Tailwind'], repo:'https://github.com/MarcusFernando/portfolio/tree/main/whatsapp-clone'},
+  {id:'ytc', label:'YouTube Clone', cat:'pink', r:8, desc:'Home do YouTube com login/cadastro (Context API + localStorage) e menu de perfil interativo.', stack:['Next.js 16','TypeScript','Tailwind'], repo:'https://github.com/MarcusFernando/portfolio/tree/main/youtube-clone'},
+  {id:'btc', label:'Batman Tickets', cat:'pink', r:7, desc:'Landing page estática responsiva com foco em performance e SEO (Core Web Vitals).', stack:['HTML5','Tailwind'], repo:'https://github.com/MarcusFernando/portfolio/tree/main/batman-tickets'},
+  {id:'ba', label:'Bone-Age', cat:'purple', r:9, desc:'Estimativa de idade óssea em radiografias pediátricas com redes neurais convolucionais — deep learning aplicado à saúde.', stack:['Python','CNN','visão computacional'], repo:null, priv:true},
+  {id:'sb', label:'SocraticBrain', cat:'gold', r:9, desc:'Assistente de estudo com método socrático: RAG que devolve perguntas antes de respostas, guiando o raciocínio do aluno. Trabalho de conclusão de curso.', stack:['Python','RAG','FastAPI'], repo:'https://github.com/MarcusFernando'},
+  // skills
+  {id:'py', label:'python', cat:'skill', r:5.5}, {id:'ts', label:'typescript', cat:'skill', r:5},
+  {id:'nx', label:'next.js', cat:'skill', r:5}, {id:'rag', label:'rag', cat:'skill', r:5.5},
+  {id:'emb', label:'embeddings', cat:'skill', r:5}, {id:'ma', label:'multi-agentes', cat:'skill', r:5.5},
+  {id:'mcp', label:'mcp', cat:'skill', r:4.5}, {id:'scr', label:'scraping', cat:'skill', r:4.5},
+  {id:'fa', label:'fastapi', cat:'skill', r:4.5}, {id:'dl', label:'deep-learning', cat:'skill', r:5},
+  {id:'wh', label:'whisper', cat:'skill', r:4.5}, {id:'tw', label:'tailwind', cat:'skill', r:4.5},
+];
+const LINKS = [
+  ['marcus','eco'],['marcus','kit'],['marcus','bhl'],['marcus','ba'],['marcus','sb'],['marcus','rq'],['marcus','wac'],['marcus','ytc'],['marcus','btc'],
+  ['eco','rag'],['eco','py'],['eco','ma'],['eco','scr'],['eco','wh'],['eco','emb'],
+  ['kit','ma'],['kit','mcp'],['kit','py'],
+  ['bhl','emb'],['bhl','py'],['bhl','fa'],['bhl','rag'],
+  ['sb','rag'],['sb','fa'],['sb','py'],
+  ['ba','dl'],['ba','py'],
+  ['rq','nx'],['rq','ts'],['wac','nx'],['wac','ts'],['wac','tw'],['ytc','nx'],['ytc','ts'],['ytc','tw'],['btc','tw'],
+];
+
+/* ═══════════ FORCE GRAPH (canvas, zero deps) ═══════════ */
+const cv = document.getElementById('graph'), ctx = cv.getContext('2d');
+let W,H,DPR; let nodes=[], links=[], byId={};
+let focusCats=null, hoverN=null, dragN=null, panY=0;
+
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener('resize',resize);resize();
+
+function init(){
+  nodes = NODES.map(n=>({...n, x:W/2+(Math.random()-.5)*W*.6, y:H/2+(Math.random()-.5)*H*.6, vx:0, vy:0}));
+  byId = Object.fromEntries(nodes.map(n=>[n.id,n]));
+  byId.marcus.x=W/2; byId.marcus.y=H/2;
+  links = LINKS.map(([a,b])=>({a:byId[a], b:byId[b]}));
+}
+init();
+
+function tick(){
+  const cx=W/2, cy=H*0.44;
+  for(const n of nodes){
+    // gravidade pro centro
+    n.vx+=(cx-n.x)*0.0009; n.vy+=(cy-n.y)*0.0009;
+    // repulsão
+    for(const m of nodes){ if(m===n)continue;
+      let dx=n.x-m.x, dy=n.y-m.y, d2=dx*dx+dy*dy;
+      if(d2<1)d2=1; if(d2>90000)continue;
+      const f=1300/d2; const d=Math.sqrt(d2);
+      n.vx+=dx/d*f; n.vy+=dy/d*f;
+    }
+  }
+  // molas
+  for(const l of links){
+    const dx=l.b.x-l.a.x, dy=l.b.y-l.a.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+    const rest=l.a.cat==='hub'||l.b.cat==='hub'?150:85;
+    const f=(d-rest)*0.006;
+    l.a.vx+=dx/d*f; l.a.vy+=dy/d*f; l.b.vx-=dx/d*f; l.b.vy-=dy/d*f;
+  }
+  for(const n of nodes){ if(n===dragN)continue;
+    n.vx*=0.86; n.vy*=0.86; n.x+=n.vx; n.y+=n.vy; }
+}
+
+function dim(n){ return focusCats && !focusCats.includes(n.cat) && n.cat!=='hub' && n.cat!=='skill'; }
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.save(); ctx.translate(0,-panY*0.15); // parallax sutil no scroll
+  for(const l of links){
+    const d1=dim(l.a)||dim(l.b);
+    const hl=hoverN&&(l.a===hoverN||l.b===hoverN);
+    ctx.strokeStyle = hl?'rgba(57,255,20,.55)':(d1?'rgba(60,60,60,.12)':'rgba(120,150,120,.16)');
+    ctx.lineWidth = hl?1.4:0.8;
+    ctx.beginPath();ctx.moveTo(l.a.x,l.a.y);ctx.lineTo(l.b.x,l.b.y);ctx.stroke();
+  }
+  for(const n of nodes){
+    const c=CAT[n.cat].c, d1=dim(n), hl=n===hoverN;
+    ctx.save();
+    ctx.globalAlpha = d1?0.18:1;
+    ctx.shadowColor = c; ctx.shadowBlur = hl?26:(n.cat==='skill'?6:14);
+    ctx.fillStyle = c;
+    ctx.beginPath();ctx.arc(n.x,n.y,hl?n.r*1.25:n.r,0,7);ctx.fill();
+    ctx.shadowBlur=0;
+    if(n.cat!=='skill'||hl){
+      ctx.font=(n.cat==='hub'?'700 13px ':'400 11px ')+'JetBrains Mono,monospace';
+      ctx.fillStyle = d1?'rgba(136,136,136,.3)':(hl?'#fff':'#c9c9c9');
+      ctx.textAlign='center';
+      ctx.fillText(n.label, n.x, n.y-n.r-8);
+    }
+    ctx.restore();
+  }
+  ctx.restore();
+}
+(function loop(){tick();draw();requestAnimationFrame(loop)})();
+
+/* interação */
+function pick(e){const r=cv.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top+panY*0.15;
+  return nodes.find(n=>{const dx=n.x-x,dy=n.y-y;return dx*dx+dy*dy<(n.r+9)*(n.r+9)})}
+cv.addEventListener('pointermove',e=>{
+  if(dragN){const r=cv.getBoundingClientRect();dragN.x=e.clientX-r.left;dragN.y=e.clientY-r.top+panY*0.15;dragN.vx=dragN.vy=0;return}
+  hoverN=pick(e); cv.style.cursor=hoverN?'pointer':'grab';
+});
+cv.addEventListener('pointerdown',e=>{dragN=pick(e);if(dragN){cv.classList.add('grabbing');cv.setPointerCapture(e.pointerId)}});
+cv.addEventListener('pointerup',e=>{
+  cv.classList.remove('grabbing');
+  if(dragN){const moved=Math.abs(e.movementX)+Math.abs(e.movementY);dragN=null;}
+});
+cv.addEventListener('click',e=>{const n=pick(e); if(n&&n.desc)openDrawer(n)});
+
+/* drawer */
+const drawer=document.getElementById('drawer');
+function openDrawer(n){
+  document.getElementById('d-cat').textContent='■ '+CAT[n.cat].name;
+  document.getElementById('d-cat').style.color=CAT[n.cat].c;
+  document.getElementById('d-title').textContent=n.label;
+  document.getElementById('d-desc').textContent=n.desc;
+  document.getElementById('d-stack').innerHTML=(n.stack||[]).map(s=>`<span>${s}</span>`).join('');
+  const a=document.getElementById('d-link');
+  if(n.repo){a.classList.remove('off');a.href=n.repo;a.textContent='ver no github →'}
+  else{a.classList.add('off');a.href='#';a.textContent=n.priv?'repositório privado 🔒':'em breve'}
+  drawer.classList.add('open');
+}
+document.getElementById('d-close').onclick=()=>drawer.classList.remove('open');
+addEventListener('keydown',e=>{if(e.key==='Escape')drawer.classList.remove('open')});
+
+/* scroll: foco por seção + parallax */
+addEventListener('scroll',()=>{panY=scrollY});
+const obs=new IntersectionObserver(es=>{
+  for(const e of es){
+    if(e.isIntersecting){
+      e.target.classList.add('vis');
+      const f=e.target.dataset.focus;
+      focusCats = f? f.split(' ') : null;
+    } else if(e.target.id==='hero'){ /* nada */ }
+  }
+  if(scrollY<innerHeight*0.5) focusCats=null;
+},{threshold:0.45});
+document.querySelectorAll('section').forEach(s=>obs.observe(s));
+addEventListener('scroll',()=>{ if(scrollY<innerHeight*0.4) focusCats=null; });
+
+/* typing hero */
+const PHRASE='Orquestrando agentes, dados e ecossistemas.';
+const typedEl=document.getElementById('typed'); let ti=0;
+function typeStep(){ if(ti<=PHRASE.length){typedEl.textContent=PHRASE.slice(0,ti);ti++;setTimeout(typeStep,38+Math.random()*40)} }
+
+/* boot */
+const BOOT=['marcus@eco:~$ ./boot --portfolio','[ ok ] carregando grafo de conhecimento','[ ok ] conectando 21 nós · 37 arestas','[ ok ] mesa de agentes online','',''];
+const bl=document.getElementById('bootlines'); let bi=0;
+function bootStep(){
+  if(bi<BOOT.length){ bl.textContent+=BOOT[bi]+'\n'; bi++; setTimeout(bootStep, bi===1?420:260); }
+  else{ document.getElementById('boot').classList.add('off'); typeStep(); }
+}
+if(sessionStorage.getItem('booted')){document.getElementById('boot').classList.add('off');typeStep()}
+else{sessionStorage.setItem('booted','1');setTimeout(bootStep,300)}
+document.getElementById('boot').addEventListener('click',()=>{document.getElementById('boot').classList.add('off');if(ti===0)typeStep()});
+</script>
+</body>
+</html>
