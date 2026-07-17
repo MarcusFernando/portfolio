@@ -650,6 +650,7 @@
 
 <footer>grafo de conhecimento vivo · construído por uma mesa de agentes orquestrada por <b>marcus@eco</b> · 2026</footer>
 
+<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
 <script>
 /* ═══════════ DATA — o grafo de conhecimento ═══════════ */
 const CAT = {
@@ -693,12 +694,13 @@ const LINKS = [
 /* ═══════════ FORCE GRAPH (canvas, zero deps) ═══════════ */
 const cv = document.getElementById('graph'), ctx = cv.getContext('2d');
 let W,H,DPR; let nodes=[], links=[], byId={};
-let focusCats=null, hoverN=null, dragN=null, panY=0;
+let focusCats=null, hoverN=null, dragN=null, panY=0, currentCy=350;
 
 function resize(){
   DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
   ctx.setTransform(DPR,0,0,DPR,0,0);
+  currentCy = H * 0.44;
 }
 addEventListener('resize',resize);resize();
 
@@ -711,7 +713,18 @@ function init(){
 init();
 
 function tick(){
-  const cx=W/2, cy=H*0.44;
+  let targetCy = H * 0.44;
+  if (focusCats) {
+    if (focusCats.includes('cyan')) targetCy = H * 0.36;
+    else if (focusCats.includes('pink')) targetCy = H * 0.42;
+    else if (focusCats.includes('purple')) targetCy = H * 0.48;
+  }
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    currentCy += (targetCy - currentCy) * 0.05;
+  } else {
+    currentCy = targetCy;
+  }
+  const cx=W/2, cy=currentCy;
   for(const n of nodes){
     // gravidade pro centro
     n.vx+=(cx-n.x)*0.0009; n.vy+=(cy-n.y)*0.0009;
@@ -766,8 +779,18 @@ function draw(){
   for(const n of nodes){
     const c=CAT[n.cat].c, d1=dim(n), hl=n===hoverN;
     ctx.save();
-    ctx.globalAlpha = d1?0.18:1;
-    
+    // Padrão 01: Pulsing Ring (Aesthetic upgrade)
+    if (n.cat !== 'skill' && !d1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const pulse = n.r * (1 + 0.35 * Math.sin(Date.now() * 0.003 + n.x));
+      ctx.strokeStyle = c;
+      ctx.lineWidth = 0.6;
+      ctx.globalAlpha = 0.25 * (1 - (pulse - n.r) / (n.r * 0.35));
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, pulse, 0, 7);
+      ctx.stroke();
+      ctx.globalAlpha = d1 ? 0.18 : 1; // restaura alpha
+    }
+
     // Gradiente radial interno para dar efeito de glow tridimensional premium
     const size = hl ? n.r * 1.3 : n.r;
     const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, size);
@@ -859,8 +882,32 @@ addEventListener('keydown',e=>{
   if(e.key==='Escape') closeDrawer();
 });
 
-/* scroll: foco por seção + parallax */
-addEventListener('scroll',()=>{panY=scrollY});
+/* scroll: foco por seção + parallax (Lenis smooth scroll c/ fallback nativo) */
+let lenis;
+if (typeof Lenis !== 'undefined') {
+  lenis = new Lenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    gestureOrientation: 'vertical',
+    smoothWheel: true,
+  });
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+  
+  lenis.on('scroll', (e) => {
+    panY = e.scroll;
+    if (e.scroll < innerHeight * 0.4) focusCats = null;
+  });
+} else {
+  addEventListener('scroll', () => {
+    panY = window.scrollY;
+    if (window.scrollY < innerHeight * 0.4) focusCats = null;
+  });
+}
+
 const obs=new IntersectionObserver(es=>{
   for(const e of es){
     if(e.isIntersecting){
@@ -869,10 +916,10 @@ const obs=new IntersectionObserver(es=>{
       focusCats = f? f.split(' ') : null;
     }
   }
-  if(scrollY<innerHeight*0.5) focusCats=null;
+  const currentScroll = lenis ? lenis.scroll : window.scrollY;
+  if(currentScroll < innerHeight * 0.5) focusCats=null;
 },{threshold:0.45});
 document.querySelectorAll('section').forEach(s=>obs.observe(s));
-addEventListener('scroll',()=>{ if(scrollY<innerHeight*0.4) focusCats=null; });
 
 /* typing hero */
 const PHRASE='Orquestrando agentes, dados e ecossistemas.';
