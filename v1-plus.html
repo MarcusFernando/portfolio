@@ -97,10 +97,15 @@
     inset: 0;
     z-index: 0;
     cursor: grab;
+    touch-action: pan-y; /* toque vertical rola a página, não o grafo */
   }
   
   #graph.grabbing {
     cursor: grabbing;
+  }
+
+  #graph.bg {
+    pointer-events: none; /* fora do hero o grafo é só cenário */
   }
 
   /* ── Skip Link for Accessibility ── */
@@ -251,6 +256,73 @@
   section.vis .card {
     opacity: 1;
     transform: none;
+  }
+
+  /* conteúdo do card entra em cascata (stagger) */
+  .card .tag, .card h2, .card p, .card li {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  section.vis .card .tag { transition-delay: 0.08s; }
+  section.vis .card h2 { transition-delay: 0.18s; }
+  section.vis .card p { transition-delay: 0.28s; }
+  section.vis .card li:nth-child(1) { transition-delay: 0.40s; }
+  section.vis .card li:nth-child(2) { transition-delay: 0.50s; }
+  section.vis .card li:nth-child(3) { transition-delay: 0.60s; }
+  section.vis .card .tag, section.vis .card h2,
+  section.vis .card p, section.vis .card li {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* side text: capítulo tipográfico na borda da seção (ref. kc1t) */
+  section[data-side] { position: relative; }
+  section[data-side]::after {
+    content: attr(data-side);
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: clamp(44px, 8vw, 104px);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(32, 194, 14, 0.055);
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  section.vis[data-side]::after { opacity: 1; }
+
+  /* marquee de stack com máscara de fade (ref. kc1t) */
+  .marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 26px 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #fff 12% 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #fff 12% 88%, transparent);
+  }
+  .marquee-track {
+    display: inline-block;
+    animation: marquee 38s linear infinite;
+  }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .card .tag, .card h2, .card p, .card li {
+      opacity: 1; transform: none; transition: none;
+    }
+    section[data-side]::after { opacity: 1; transition: none; }
+    .marquee-track { animation: none; }
   }
   
   .card .tag {
@@ -646,7 +718,7 @@
     <p class="hint">o grafo é vivo: <b>arraste</b> os nós · <b>clique</b> para abrir um projeto · <b>role</b> para explorar por área</p>
   </div>
 
-  <section id="ia" class="s-cyan" data-focus="cyan">
+  <section id="ia" class="s-cyan" data-focus="cyan" data-side="agentes">
     <div class="card">
       <div class="tag">■ ia &amp; agentes</div>
       <h2>Ecossistemas que trabalham sozinhos</h2>
@@ -658,7 +730,7 @@
     </div>
   </section>
 
-  <section id="saas" class="s-pink" data-focus="pink">
+  <section id="saas" class="s-pink" data-focus="pink" data-side="produto">
     <div class="card">
       <div class="tag">■ saas &amp; full-stack</div>
       <h2>Do matching engine ao pixel</h2>
@@ -671,7 +743,7 @@
     </div>
   </section>
 
-  <section id="pesquisa" class="s-purple" data-focus="purple gold">
+  <section id="pesquisa" class="s-purple" data-focus="purple gold" data-side="pesquisa">
     <div class="card">
       <div class="tag">■ deep learning &amp; pesquisa</div>
       <h2>Onde a teoria encosta no osso</h2>
@@ -684,7 +756,7 @@
   </section>
 
 
-  <section id="sistema">
+  <section id="sistema" data-side="sistema">
     <div class="v1p">
       <div class="v1p-cap">Leitura do sistema</div>
       <dl class="sysgrid">
@@ -700,7 +772,7 @@
     </div>
   </section>
 
-  <section id="automacoes">
+  <section id="automacoes" data-side="automação">
     <div class="v1p">
       <div class="v1p-cap">Automacoes rodando</div>
       <div class="vids">
@@ -720,7 +792,7 @@
     </div>
   </section>
 
-  <section id="musica">
+  <section id="musica" data-side="música">
     <div class="v1p">
       <div class="v1p-cap">Musica / Playlist</div>
       <div class="mus">
@@ -740,7 +812,13 @@
     </div>
   </section>
 
-  <section id="contato">
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>python · typescript · rag · embeddings · sqlite-vec · whisper · fastapi · next.js · tailwind · docker · systemd · telegram api · claude code · gemini · llm judge · git worktrees · </span><span>python · typescript · rag · embeddings · sqlite-vec · whisper · fastapi · next.js · tailwind · docker · systemd · telegram api · claude code · gemini · llm judge · git worktrees · </span>
+    </div>
+  </div>
+
+  <section id="contato" data-side="contato">
     <div class="term">
       <div class="term-bar">marcus@eco: ~/contato</div>
       <div class="term-body">
@@ -815,6 +893,9 @@ const LINKS = [
 const cv = document.getElementById('graph'), ctx = cv.getContext('2d');
 let CW,H,DPR; let nodes=[], links=[], byId={};
 let focusCats=null, hoverN=null, dragN=null, panY=0, currentCy=350;
+/* prefers-reduced-motion: 1 leitura + listener (antes: ~50 matchMedia/frame no draw) */
+let REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+matchMedia('(prefers-reduced-motion: reduce)').onchange = e => REDUCED = e.matches;
 
 function resize(){
   DPR=Math.min(devicePixelRatio||1,2);CW=innerWidth;H=innerHeight;
@@ -839,7 +920,7 @@ function tick(){
     else if (focusCats.includes('pink')) targetCy = H * 0.42;
     else if (focusCats.includes('purple')) targetCy = H * 0.48;
   }
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (!REDUCED) {
     currentCy += (targetCy - currentCy) * 0.05;
   } else {
     currentCy = targetCy;
@@ -870,6 +951,7 @@ function tick(){
 function dim(n){ return focusCats && !focusCats.includes(n.cat) && n.cat!=='hub' && n.cat!=='skill'; }
 
 function draw(){
+  const now = Date.now();
   ctx.clearRect(0,0,CW,H);
   ctx.save(); ctx.translate(0,-panY*0.15); // parallax sutil no scroll
   
@@ -882,8 +964,8 @@ function draw(){
     ctx.beginPath();ctx.moveTo(l.a.x,l.a.y);ctx.lineTo(l.b.x,l.b.y);ctx.stroke();
     
     // Desenha partículas de dados fluindo ao longo das conexões (aesthetics upgrade)
-    if(!d1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const t = (Date.now() * 0.001) % 1;
+    if(!d1 && !REDUCED) {
+      const t = (now * 0.001) % 1;
       const stagger = (l.a.x * 0.01 + l.b.y * 0.02) % 1;
       const progress = (t + stagger) % 1;
       const px = l.a.x + (l.b.x - l.a.x) * progress;
@@ -900,8 +982,8 @@ function draw(){
     const c=CAT[n.cat].c, d1=dim(n), hl=n===hoverN;
     ctx.save();
     // Padrão 01: Pulsing Ring (Aesthetic upgrade)
-    if (n.cat !== 'skill' && !d1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const pulse = n.r * (1 + 0.35 * Math.sin(Date.now() * 0.003 + n.x));
+    if (n.cat !== 'skill' && !d1 && !REDUCED) {
+      const pulse = n.r * (1 + 0.35 * Math.sin(now * 0.003 + n.x));
       ctx.strokeStyle = c;
       ctx.lineWidth = 0.6;
       ctx.globalAlpha = 0.25 * (1 - (pulse - n.r) / (n.r * 0.35));
@@ -968,6 +1050,12 @@ cv.addEventListener('pointerup',e=>{
   if(dragN){dragN=null;}
 });
 
+/* touch cancelado pelo scroll nativo: sem isso o nó fica grudado no ponteiro */
+cv.addEventListener('pointercancel',()=>{
+  cv.classList.remove('grabbing');
+  dragN=null;
+});
+
 cv.addEventListener('click',e=>{
   const n=pick(e); 
   if(n&&n.desc)openDrawer(n);
@@ -1002,6 +1090,10 @@ addEventListener('keydown',e=>{
   if(e.key==='Escape') closeDrawer();
 });
 
+/* fora do hero, o grafo vira cenário: ponteiro e toque voltam pra página */
+function graphGate(y){ cv.classList.toggle('bg', y > innerHeight * 0.55); }
+graphGate(scrollY);
+
 /* scroll: foco por seção + parallax (Lenis smooth scroll c/ fallback nativo) */
 let lenis;
 if (typeof Lenis !== 'undefined') {
@@ -1019,11 +1111,13 @@ if (typeof Lenis !== 'undefined') {
   
   lenis.on('scroll', (e) => {
     panY = e.scroll;
+    graphGate(e.scroll);
     if (e.scroll < innerHeight * 0.4) focusCats = null;
   });
 } else {
   addEventListener('scroll', () => {
     panY = window.scrollY;
+    graphGate(window.scrollY);
     if (window.scrollY < innerHeight * 0.4) focusCats = null;
   });
 }
@@ -1047,7 +1141,7 @@ const typedEl=document.getElementById('typed'); let ti=0;
 function typeStep(){ 
   if(ti<=PHRASE.length){
     typedEl.textContent=PHRASE.slice(0,ti);ti++;
-    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 38+Math.random()*40;
+    const delay = REDUCED ? 0 : 38+Math.random()*40;
     setTimeout(typeStep, delay);
   } 
 }
@@ -1065,7 +1159,7 @@ const bl=document.getElementById('bootlines'); let bi=0;
 function bootStep(){
   if(bi<BOOT.length){ 
     bl.textContent+=BOOT[bi]+'\n'; bi++; 
-    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : (bi===1?420:260);
+    const delay = REDUCED ? 0 : (bi===1?420:260);
     setTimeout(bootStep, delay); 
   } else { 
     document.getElementById('boot').classList.add('off'); 
