@@ -559,6 +559,17 @@
       animation: none !important;
     }
   }
+
+  /* SALVA-VIDAS (01/08): o boot some por ANIMACAO CSS, nao so por JS.
+     O portfolio ficou servindo tela preta para todo visitante porque o script
+     que remove .off nao executava — e HTTP 200 nao revelou isso. Agora, se o JS
+     falhar por qualquer motivo, a pagina aparece sozinha em 2,6s. JS quebrado
+     custa a animacao de boot; nunca mais custa a pagina inteira. */
+  #boot { animation: boot-desiste .5s ease 2.6s forwards; }
+  @keyframes boot-desiste { to { opacity: 0; pointer-events: none; visibility: hidden; } }
+  #boot.off { animation: none; }
+  @media (prefers-reduced-motion: reduce) { #boot { animation-delay: .2s; } }
+
 </style>
 </head>
 <body>
