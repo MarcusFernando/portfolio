@@ -105,7 +105,11 @@
   }
 
   #graph.bg {
-    pointer-events: none; /* fora do hero o grafo é só cenário */
+    opacity: 0.55; /* fora do hero o grafo RECUA, mas segue interativo */
+  }
+
+  #graph {
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* ── Skip Link for Accessibility ── */
@@ -913,12 +917,7 @@ function init(){
 }
 init();
 
-/* fora do hero o grafo e CENARIO: congela a fisica (nos param de se reorganizar
-   embaixo do texto enquanto voce rola) e economiza CPU. Ao voltar ao hero, volta
-   a viver — o foco por seccao continua valendo, so nao remexe durante a leitura. */
-let simAtiva = true;
 function tick(){
-  if(!simAtiva) return;
   let targetCy = H * 0.44;
   if (focusCats) {
     if (focusCats.includes('cyan')) targetCy = H * 0.36;
@@ -1096,12 +1095,10 @@ addEventListener('keydown',e=>{
 });
 
 /* fora do hero, o grafo vira cenário: ponteiro e toque voltam pra página */
-function graphGate(y){
-  const fora = y > innerHeight * 0.55;
-  cv.classList.toggle('bg', fora);
-  simAtiva = !fora;          // cenario parado fora do hero
-  if(fora){ hoverN = null; dragN = null; }
-}
+/* fora do hero o grafo recua VISUALMENTE (opacidade), mas continua interativo:
+   arrastar/clicar nos nos funciona em qualquer altura da pagina. O scroll nao
+   sofre com isso — o canvas nao escuta wheel, e touch-action:pan-y cobre o toque. */
+function graphGate(y){ cv.classList.toggle('bg', y > innerHeight * 0.55); }
 graphGate(scrollY);
 
 /* scroll: foco por seção + parallax (Lenis smooth scroll c/ fallback nativo) */
