@@ -913,7 +913,12 @@ function init(){
 }
 init();
 
+/* fora do hero o grafo e CENARIO: congela a fisica (nos param de se reorganizar
+   embaixo do texto enquanto voce rola) e economiza CPU. Ao voltar ao hero, volta
+   a viver — o foco por seccao continua valendo, so nao remexe durante a leitura. */
+let simAtiva = true;
 function tick(){
+  if(!simAtiva) return;
   let targetCy = H * 0.44;
   if (focusCats) {
     if (focusCats.includes('cyan')) targetCy = H * 0.36;
@@ -953,7 +958,7 @@ function dim(n){ return focusCats && !focusCats.includes(n.cat) && n.cat!=='hub'
 function draw(){
   const now = Date.now();
   ctx.clearRect(0,0,CW,H);
-  ctx.save(); ctx.translate(0,-panY*0.15); // parallax sutil no scroll
+  ctx.save(); ctx.translate(0,-panY*0.06); // parallax sutil (0.15 competia com a leitura)
   
   // Desenha links
   for(const l of links){
@@ -1023,14 +1028,14 @@ function draw(){
 /* interação */
 function pick(e){
   const r=cv.getBoundingClientRect();
-  const x=e.clientX-r.left,y=e.clientY-r.top+panY*0.15;
+  const x=e.clientX-r.left,y=e.clientY-r.top+panY*0.06;
   return nodes.find(n=>{const dx=n.x-x,dy=n.y-y;return dx*dx+dy*dy<(n.r+9)*(n.r+9)});
 }
 
 cv.addEventListener('pointermove',e=>{
   if(dragN){
     const r=cv.getBoundingClientRect();
-    dragN.x=e.clientX-r.left;dragN.y=e.clientY-r.top+panY*0.15;
+    dragN.x=e.clientX-r.left;dragN.y=e.clientY-r.top+panY*0.06;
     dragN.vx=dragN.vy=0;
     return;
   }
@@ -1091,17 +1096,25 @@ addEventListener('keydown',e=>{
 });
 
 /* fora do hero, o grafo vira cenário: ponteiro e toque voltam pra página */
-function graphGate(y){ cv.classList.toggle('bg', y > innerHeight * 0.55); }
+function graphGate(y){
+  const fora = y > innerHeight * 0.55;
+  cv.classList.toggle('bg', fora);
+  simAtiva = !fora;          // cenario parado fora do hero
+  if(fora){ hoverN = null; dragN = null; }
+}
 graphGate(scrollY);
 
 /* scroll: foco por seção + parallax (Lenis smooth scroll c/ fallback nativo) */
 let lenis;
 if (typeof Lenis !== 'undefined') {
   lenis = new Lenis({
-    duration: 1.2,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    // smoothWheel FALSE de proposito: com duration 1.2 cada evento de roda
+    // reiniciava uma animacao de 1,2s, e a pagina continuava deslizando depois
+    // que voce parava — a sensacao de "scroll que nao obedece". A roda agora e
+    // 100% nativa; o Lenis fica so para o scrollTo suave dos links do menu.
+    smoothWheel: false,
+    syncTouch: false,
     gestureOrientation: 'vertical',
-    smoothWheel: true,
   });
   function raf(time) {
     lenis.raf(time);
