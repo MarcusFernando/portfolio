@@ -6,11 +6,20 @@ Projetos práticos com **deploy ao vivo**. Cada um é um MVP polido — código 
 
 | Projeto | Descrição | Stack | Demo |
 |---|---|---|---|
-| **YouTube Clone** | Home do YouTube com login/cadastro (Context API + localStorage) e menu de perfil interativo | Next.js 16 · TypeScript · Tailwind | _(deploy → link)_ |
-| **WhatsApp Web Clone** | Interface dark do WhatsApp Web: sidebar de conversas com última mensagem, popup de emojis e indicador "digitando…" (Realtime) | Next.js 16 · TypeScript · Tailwind | _(deploy → link)_ |
-| **Batman Tickets** | Landing page estática responsiva, foco em performance/SEO (Core Web Vitals) | HTML5 · Tailwind | _(deploy → link)_ |
+| **Batman Tickets** | Landing page estática responsiva, foco em performance/SEO (Core Web Vitals) | HTML5 · Tailwind | **[▶ ao vivo](https://marcusfernando.github.io/portfolio/batman-tickets/)** |
 
-> Projetos do curso **Profissão Programador**, reconstruídos com arquitetura moderna (serverless, deploy 1-clique na Vercel) em vez de servidores dedicados.
+### Exercícios de interface
+
+Duas telas construídas como estudo de padrões de UI do curso **Profissão Programador**,
+mantidas aqui por honestidade de trajetória — são **exercícios, não produtos**:
+
+| Exercício | O que exercita | Stack | Tamanho |
+|---|---|---|---|
+| Home de vídeo | autenticação com Context API + localStorage, menu de perfil | Next.js 16 · TS · Tailwind | 367 linhas |
+| Chat web | lista de conversas, popup de emoji, indicador "digitando…" | Next.js 16 · TS · Tailwind | 319 linhas |
+
+Rodam com `npm run dev` na respectiva pasta. Não têm deploy porque não há o que
+demonstrar publicamente numa tela estática de 300 linhas.
 
 ## Rodar localmente
 
