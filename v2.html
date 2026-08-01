@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marcus Fernando — sistemas que continuam rodando</title>
+<meta name="description" content="Engenharia de sistemas com IA: captação, RAG híbrido e agentes autônomos. Portfólio v2.">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   TOKENS — namespace --ds-* (padrão minerado de kc1t.com, 22/07)
+   A paleta NÃO é a dele. Derivada do assunto: terminal de fósforo,
+   não verde-ácido (que é cluster reconhecível de design gerado por IA).
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* escada de superfícies — azul-preto, nunca #000 puro */
+  --ds-vazio:    #08090A;
+  --ds-placa:    #0F1214;
+  --ds-trilha:   #151A1D;
+  --ds-aresta:   #ffffff14;
+  --ds-aresta-f: #ffffff26;
+
+  /* fósforo: o verde de CRT real, dessaturado. #39FF14 seria o default de IA */
+  --ds-fosforo:     #7DD956;
+  --ds-fosforo-viv: #A8F07E;
+  --ds-fosforo-som: #2E5C22;
+  --ds-fosforo-vel: #7dd9561f;
+
+  /* brasa: só para o que exige atenção. Warm, briga com o verde de propósito */
+  --ds-brasa: #E8734A;
+
+  /* conteúdo — cinza com viés frio na direção do fundo, não cinza neutro */
+  --ds-osso:   #E6E4DE;
+  --ds-fumaca: #858C91;
+  --ds-poeira: #5A6167;
+
+  --ds-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --ds-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ds-serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+
+  --ds-r-sm: 4px;  --ds-r: 10px;  --ds-r-pill: 100px;
+  --ds-ease: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* Tema claro: não é inversão ingênua. Papel quente, fósforo escurecido
+   para passar contraste sobre claro. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --ds-vazio: #F4F3EF; --ds-placa: #FFFFFF; --ds-trilha: #EDECE6;
+    --ds-aresta: #0000001a; --ds-aresta-f: #00000030;
+    --ds-fosforo: #2F7A18; --ds-fosforo-viv: #1F5C0E; --ds-fosforo-som: #BFE3AC;
+    --ds-fosforo-vel: #2f7a180f;
+    --ds-osso: #14181A; --ds-fumaca: #5A6167; --ds-poeira: #8A9096;
+  }
+}
+:root[data-theme="light"] {
+  --ds-vazio: #F4F3EF; --ds-placa: #FFFFFF; --ds-trilha: #EDECE6;
+  --ds-aresta: #0000001a; --ds-aresta-f: #00000030;
+  --ds-fosforo: #2F7A18; --ds-fosforo-viv: #1F5C0E; --ds-fosforo-som: #BFE3AC;
+  --ds-fosforo-vel: #2f7a180f;
+  --ds-osso: #14181A; --ds-fumaca: #5A6167; --ds-poeira: #8A9096;
+}
+:root[data-theme="dark"] {
+  --ds-vazio: #08090A; --ds-placa: #0F1214; --ds-trilha: #151A1D;
+  --ds-aresta: #ffffff14; --ds-aresta-f: #ffffff26;
+  --ds-fosforo: #7DD956; --ds-fosforo-viv: #A8F07E; --ds-fosforo-som: #2E5C22;
+  --ds-fosforo-vel: #7dd9561f;
+  --ds-osso: #E6E4DE; --ds-fumaca: #858C91; --ds-poeira: #5A6167;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--ds-vazio); color: var(--ds-osso);
+  font-family: var(--ds-sans); font-size: 16px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ds-fosforo); outline-offset: 3px; border-radius: var(--ds-r-sm); }
+
+.env { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+section { padding: 96px 0; border-top: 1px solid var(--ds-aresta); }
+section:first-of-type { border-top: 0; }
+
+/* rótulo de capítulo — o side-text do kc1t, aqui na horizontal para não
+   quebrar em telas estreitas (o dele é absoluto e some no mobile) */
+.cap {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--ds-mono); font-size: 11px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--ds-poeira); margin-bottom: 28px;
+}
+.cap::after { content: ""; flex: 1; height: 1px; background: var(--ds-aresta); }
+
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+
+/* ── HERO: painel de instrumentos ─────────────────────────────────────── */
+.hero { padding: 88px 0 72px; }
+.hero-nome {
+  font-family: var(--ds-mono); font-size: 12px; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--ds-fosforo); margin-bottom: 20px;
+}
+.hero h1 {
+  font-size: clamp(2.4rem, 6.4vw, 4.4rem); line-height: 1.02;
+  font-weight: 800; letter-spacing: -.035em; margin-bottom: 22px;
+}
+.hero h1 em {
+  font-family: var(--ds-serif); font-style: italic; font-weight: 400;
+  letter-spacing: -.01em; color: var(--ds-fosforo);
+}
+.hero p {
+  max-width: 60ch; color: var(--ds-fumaca); font-size: 1.05rem; margin: 0 0 36px;
+}
+
+/* o instrumento — a única coisa desta página que ninguém copia */
+.painel {
+  border: 1px solid var(--ds-aresta); border-radius: var(--ds-r);
+  background: var(--ds-placa); overflow: hidden;
+}
+.painel-topo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 16px; border-bottom: 1px solid var(--ds-aresta);
+  background: var(--ds-trilha);
+  font-family: var(--ds-mono); font-size: 11px; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--ds-fumaca);
+}
+.pulso {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--ds-fosforo);
+  box-shadow: 0 0 0 0 var(--ds-fosforo-vel); animation: pulso 2.6s infinite;
+}
+@keyframes pulso {
+  0%   { box-shadow: 0 0 0 0 var(--ds-fosforo-vel); }
+  70%  { box-shadow: 0 0 0 9px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.leituras { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); }
+.leitura { padding: 20px 16px; border-right: 1px solid var(--ds-aresta); }
+.leitura:last-child { border-right: 0; }
+.leitura dt {
+  font-family: var(--ds-mono); font-size: 10px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ds-poeira); margin-bottom: 8px;
+}
+.leitura dd {
+  margin: 0; font-family: var(--ds-mono); font-size: 1.6rem; font-weight: 600;
+  font-variant-numeric: tabular-nums; color: var(--ds-fosforo); line-height: 1.1;
+}
+.leitura small {
+  display: block; margin-top: 5px; font-family: var(--ds-mono);
+  font-size: 10.5px; color: var(--ds-fumaca); letter-spacing: .04em;
+}
+.painel-rodape {
+  padding: 10px 16px; border-top: 1px solid var(--ds-aresta);
+  font-family: var(--ds-mono); font-size: 10.5px; color: var(--ds-poeira);
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+
+/* ── projetos ─────────────────────────────────────────────────────────── */
+.grade { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(292px, 1fr)); }
+.proj {
+  border: 1px solid var(--ds-aresta); border-radius: var(--ds-r);
+  background: var(--ds-placa); padding: 22px; display: flex; flex-direction: column; gap: 12px;
+  transition: border-color .2s var(--ds-ease), background .2s var(--ds-ease), transform .2s var(--ds-ease);
+}
+.proj:hover, .proj:focus-within {
+  border-color: var(--ds-aresta-f); background: var(--ds-trilha); transform: translateY(-2px);
+}
+.proj-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.proj h3 { font-size: 1.06rem; font-weight: 650; letter-spacing: -.012em; }
+.proj p { margin: 0; color: var(--ds-fumaca); font-size: .93rem; }
+.pilhas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 6px; }
+.pilha {
+  font-family: var(--ds-mono); font-size: 10px; letter-spacing: .07em;
+  padding: 3px 9px; border-radius: var(--ds-r-pill);
+  border: 1px solid var(--ds-aresta); color: var(--ds-fumaca);
+}
+/* estado é informação, não decoração: cada chip diz uma verdade verificável */
+.selo {
+  font-family: var(--ds-mono); font-size: 9.5px; letter-spacing: .12em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: var(--ds-r-sm);
+  white-space: nowrap;
+}
+.selo-vivo   { color: var(--ds-fosforo); background: var(--ds-fosforo-vel); border: 1px solid var(--ds-fosforo-som); }
+.selo-prod   { color: var(--ds-osso);    background: var(--ds-trilha);      border: 1px solid var(--ds-aresta-f); }
+.selo-obra   { color: var(--ds-brasa);   background: #e8734a14;             border: 1px solid #e8734a33; }
+.proj a.link {
+  font-family: var(--ds-mono); font-size: 11.5px; color: var(--ds-fosforo);
+  text-decoration: none; border-bottom: 1px solid var(--ds-fosforo-som); align-self: flex-start;
+}
+.proj a.link:hover { border-bottom-color: var(--ds-fosforo); }
+
+/* ── trajetória ───────────────────────────────────────────────────────── */
+.trilha { display: flex; flex-direction: column; gap: 0; }
+.marco {
+  display: grid; grid-template-columns: 92px 1fr; gap: 20px;
+  padding: 16px 0; border-bottom: 1px solid var(--ds-aresta);
+}
+.marco:last-child { border-bottom: 0; }
+.marco time {
+  font-family: var(--ds-mono); font-size: 11.5px; color: var(--ds-poeira);
+  letter-spacing: .06em; padding-top: 3px;
+}
+.marco strong { display: block; font-weight: 600; font-size: .97rem; margin-bottom: 3px; }
+.marco span { color: var(--ds-fumaca); font-size: .9rem; }
+
+/* ── contato ──────────────────────────────────────────────────────────── */
+.fecho h2 { font-size: clamp(1.6rem, 3.6vw, 2.3rem); letter-spacing: -.025em; margin-bottom: 14px; }
+.fecho p { color: var(--ds-fumaca); max-width: 56ch; margin: 0 0 26px; }
+.acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn {
+  font-family: var(--ds-mono); font-size: 12px; letter-spacing: .07em;
+  padding: 11px 18px; border-radius: var(--ds-r-sm); text-decoration: none;
+  border: 1px solid var(--ds-aresta-f); color: var(--ds-osso);
+  transition: border-color .2s var(--ds-ease), background .2s var(--ds-ease);
+}
+.btn:hover { border-color: var(--ds-fosforo); background: var(--ds-fosforo-vel); }
+.btn-p { border-color: var(--ds-fosforo-som); color: var(--ds-fosforo); }
+
+footer {
+  border-top: 1px solid var(--ds-aresta); padding: 26px 0 40px;
+  font-family: var(--ds-mono); font-size: 11px; color: var(--ds-poeira);
+  display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+}
+footer a { color: var(--ds-fumaca); text-decoration: none; }
+footer a:hover { color: var(--ds-fosforo); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+}
+@media (max-width: 620px) {
+  section { padding: 64px 0; }
+  .leitura { border-right: 0; border-bottom: 1px solid var(--ds-aresta); }
+  .marco { grid-template-columns: 1fr; gap: 4px; }
+}
+</style>
+</head>
+<body>
+
+<main class="env">
+
+  <!-- ══ HERO: a tese é que os sistemas continuam rodando ══ -->
+  <header class="hero">
+    <div class="hero-nome">Marcus Fernando · São Luís, MA</div>
+    <h1>Eu construo sistemas que <em>continuam rodando</em> depois que eu saio da frente.</h1>
+    <p>
+      Engenharia de captação, recuperação e agentes autônomos. Abaixo não há um selo de
+      &ldquo;disponível&rdquo;: há a leitura ao vivo de um sistema meu que está de pé agora.
+    </p>
+
+    <div class="painel">
+      <div class="painel-topo">
+        <span class="pulso" aria-hidden="true"></span>
+        <span>ECO · leitura do sistema</span>
+      </div>
+      <dl class="leituras">
+        <div class="leitura">
+          <dt>Nexus</dt>
+          <dd id="v-uptime">41</dd>
+          <small>dias de uptime ininterrupto</small>
+        </div>
+        <div class="leitura">
+          <dt>Base vetorial</dt>
+          <dd id="v-chunks">10.485</dd>
+          <small>trechos em 42 domínios</small>
+        </div>
+        <div class="leitura">
+          <dt>Memória episódica</dt>
+          <dd id="v-l4">06:10</dd>
+          <small>nota diária, sem intervenção</small>
+        </div>
+        <div class="leitura">
+          <dt>Mesa de agentes</dt>
+          <dd id="v-mesa">3</dd>
+          <small>processos em worktrees isoladas</small>
+        </div>
+      </dl>
+      <div class="painel-rodape">
+        <span id="v-quando">atualizado a partir do próprio sistema</span>
+        <span>recall@6 medido: 0,65 · antes do conserto: 0,60</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ PROJETOS ══ -->
+  <section id="projetos">
+    <div class="cap">Sistemas</div>
+    <div class="grade">
+
+      <article class="proj">
+        <div class="proj-cab">
+          <h3>ECO</h3>
+          <span class="selo selo-vivo">rodando</span>
+        </div>
+        <p>
+          Ecossistema pessoal de IA: captação → RAG híbrido → agentes. Busca vetorial e
+          léxica fundidas por RRF ponderado, memória episódica diária e uma mesa
+          multi-agente coordenada por protocolo em git.
+        </p>
+        <div class="pilhas">
+          <span class="pilha">Python</span><span class="pilha">sqlite-vec</span>
+          <span class="pilha">FTS5</span><span class="pilha">MCP</span><span class="pilha">systemd</span>
+        </div>
+      </article>
+
+      <article class="proj">
+        <div class="proj-cab">
+          <h3>BH-Licit</h3>
+          <span class="selo selo-prod">em produção</span>
+        </div>
+        <p>
+          Matching semântico de licitações públicas contra o catálogo da empresa.
+          Roda em produção com usuários reais e decisões de compra em cima do resultado.
+        </p>
+        <div class="pilhas">
+          <span class="pilha">Python</span><span class="pilha">NLP</span><span class="pilha">PostgreSQL</span>
+        </div>
+      </article>
+
+      <article class="proj">
+        <div class="proj-cab">
+          <h3>agent-kit</h3>
+          <span class="selo selo-vivo">em uso diário</span>
+        </div>
+        <p>
+          Harness de agentes: 45 skills, 20 agents e 11 workflows distribuídos por
+          instalador para três CLIs distintas. É o que orquestra o trabalho no ECO.
+        </p>
+        <div class="pilhas">
+          <span class="pilha">PowerShell</span><span class="pilha">Markdown</span><span class="pilha">MCP</span>
+        </div>
+      </article>
+
+      <article class="proj">
+        <div class="proj-cab">
+          <h3>SocraticBrain</h3>
+          <span class="selo selo-prod">TCC</span>
+        </div>
+        <p>
+          Assistente socrático com RAG: em vez de responder, devolve a pergunta que
+          expõe a lacuna. Recuperação com citação obrigatória da fonte.
+        </p>
+        <div class="pilhas">
+          <span class="pilha">RAG</span><span class="pilha">Reranker</span><span class="pilha">Obsidian</span>
+        </div>
+      </article>
+
+      <article class="proj">
+        <div class="proj-cab">
+          <h3>Bone-Age</h3>
+          <span class="selo selo-prod">pesquisa</span>
+        </div>
+        <p>
+          Estimativa de idade óssea por rede convolucional sobre radiografia pediátrica
+          de mão e punho.
+        </p>
+        <div class="pilhas">
+          <span class="pilha">CNN</span><span class="pilha">PyTorch</span><span class="pilha">Visão</span>
+        </div>
+      </article>
+
+      <article class="proj">
+        <div class="proj-cab">
+          <h3>Batman Tickets</h3>
+          <span class="selo selo-vivo">no ar</span>
+        </div>
+        <p>
+          Landing estática com foco em Core Web Vitals: sem framework, sem build,
+          sem dependência de runtime.
+        </p>
+        <div class="pilhas"><span class="pilha">HTML</span><span class="pilha">Tailwind</span></div>
+        <a class="link" href="./batman-tickets/">ver ao vivo →</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══ TRAJETÓRIA — a sequência é informação: cada peça entrou porque algo quebrou ══ -->
+  <section id="trajetoria">
+    <div class="cap">Como o sistema cresceu</div>
+    <div class="trilha">
+      <div class="marco">
+        <time>nov 2025</time>
+        <div><strong>IDE com IA</strong><span>Primeiro contato assistido. O modelo era o produto.</span></div>
+      </div>
+      <div class="marco">
+        <time>dez 2025</time>
+        <div><strong>Skills e protocolos</strong><span>A instrução não se repetia sozinha — virou artefato reusável.</span></div>
+      </div>
+      <div class="marco">
+        <time>fev 2026</time>
+        <div><strong>MCP</strong><span>O modelo não alcançava nada fora do chat. Ferramenta virou protocolo.</span></div>
+      </div>
+      <div class="marco">
+        <time>abr 2026</time>
+        <div><strong>Multi-agente com handoff</strong><span>Um agente não dava conta. Worktrees isoladas e posse declarada em board.</span></div>
+      </div>
+      <div class="marco">
+        <time>jun 2026</time>
+        <div><strong>RAG híbrido e segundo cérebro</strong><span>Ele esquecia tudo entre sessões. Vetor + léxico sobre cofre com procedência.</span></div>
+      </div>
+      <div class="marco">
+        <time>jul 2026</time>
+        <div><strong>Memória e governança</strong><span>A memória virava lixo. Camada episódica, curadoria e gates de decisão.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FECHO ══ -->
+  <section class="fecho" id="contato">
+    <div class="cap">Contato</div>
+    <h2>Se você tem um sistema que precisa rodar sem alguém olhando.</h2>
+    <p>
+      É o problema que eu venho resolvendo há oito meses, todo dia, contra a realidade —
+      e a leitura no topo desta página é a prova que eu tenho.
+    </p>
+    <div class="acoes">
+      <a class="btn btn-p" href="mailto:marcusfernandotj@gmail.com">marcusfernandotj@gmail.com</a>
+      <a class="btn" href="https://github.com/MarcusFernando">GitHub</a>
+      <a class="btn" href="./">← versão 1 (grafo interativo)</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Marcus Fernando</span>
+    <span><a href="./">v1</a> · v2 · São Luís, MA</span>
+  </footer>
+
+</main>
+
+<script>
+// Os números vêm de status.json, publicado pela própria VPS uma vez por dia.
+// Arquivo ESTÁTICO de propósito: nenhum endpoint novo, nenhuma porta aberta,
+// nenhuma superfície de ataque. O sistema fica em 127.0.0.1; só o FATO sai.
+// Sem o arquivo, a página mostra os valores da última medição manual — nunca vazia.
+(async () => {
+  try {
+    const r = await fetch('./status.json', { cache: 'no-store' });
+    if (!r.ok) return;
+    const s = await r.json();
+    const põe = (id, v) => { if (v != null) document.getElementById(id).textContent = v; };
+    põe('v-uptime', s.uptime_dias);
+    põe('v-chunks', s.chunks?.toLocaleString('pt-BR'));
+    põe('v-l4', s.l4_hora);
+    põe('v-mesa', s.agentes);
+    if (s.gerado_em) {
+      document.getElementById('v-quando').textContent =
+        'leitura de ' + new Date(s.gerado_em).toLocaleString('pt-BR', {
+          day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+        });
+    }
+  } catch (_) { /* offline ou sem status.json: os valores do HTML permanecem */ }
+})();
+</script>
+</body>
+</html>
