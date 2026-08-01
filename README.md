@@ -1,6 +1,8 @@
 # Portfólio — Marcus Fernando
 
-Projetos práticos com **deploy ao vivo**. Cada um é um MVP polido — código limpo, design moderno e arquitetura serverless (Vercel + Next.js).
+**[▶ marcusfernando.github.io/portfolio](https://marcusfernando.github.io/portfolio/)** — grafo interativo em canvas, sem dependências.
+
+Projetos e experimentos, com o estado real de cada um declarado. O que está no ar tem link; o que é exercício está marcado como exercício.
 
 ## Projetos
 
