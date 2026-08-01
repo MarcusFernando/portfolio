@@ -707,21 +707,21 @@ const LINKS = [
 
 /* ═══════════ FORCE GRAPH (canvas, zero deps) ═══════════ */
 const cv = document.getElementById('graph'), ctx = cv.getContext('2d');
-let W,H,DPR; let nodes=[], links=[], byId={};
+let CW,H,DPR; let nodes=[], links=[], byId={};
 let focusCats=null, hoverN=null, dragN=null, panY=0, currentCy=350;
 
 function resize(){
-  DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
-  cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
+  DPR=Math.min(devicePixelRatio||1,2);CW=innerWidth;H=innerHeight;
+  cv.width=CW*DPR;cv.height=H*DPR;cv.style.width=CW+'px';cv.style.height=H+'px';
   ctx.setTransform(DPR,0,0,DPR,0,0);
   currentCy = H * 0.44;
 }
 addEventListener('resize',resize);resize();
 
 function init(){
-  nodes = NODES.map(n=>({...n, x:W/2+(Math.random()-.5)*W*.6, y:H/2+(Math.random()-.5)*H*.6, vx:0, vy:0}));
+  nodes = NODES.map(n=>({...n, x:CW/2+(Math.random()-.5)*CW*.6, y:H/2+(Math.random()-.5)*H*.6, vx:0, vy:0}));
   byId = Object.fromEntries(nodes.map(n=>[n.id,n]));
-  byId.marcus.x=W/2; byId.marcus.y=H/2;
+  byId.marcus.x=CW/2; byId.marcus.y=H/2;
   links = LINKS.map(([a,b])=>({a:byId[a], b:byId[b]}));
 }
 init();
@@ -738,7 +738,7 @@ function tick(){
   } else {
     currentCy = targetCy;
   }
-  const cx=W/2, cy=currentCy;
+  const cx=CW/2, cy=currentCy;
   for(const n of nodes){
     // gravidade pro centro
     n.vx+=(cx-n.x)*0.0009; n.vy+=(cy-n.y)*0.0009;
@@ -764,7 +764,7 @@ function tick(){
 function dim(n){ return focusCats && !focusCats.includes(n.cat) && n.cat!=='hub' && n.cat!=='skill'; }
 
 function draw(){
-  ctx.clearRect(0,0,W,H);
+  ctx.clearRect(0,0,CW,H);
   ctx.save(); ctx.translate(0,-panY*0.15); // parallax sutil no scroll
   
   // Desenha links
