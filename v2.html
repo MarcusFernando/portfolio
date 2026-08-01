@@ -263,13 +263,13 @@ footer a:hover { color: var(--ds-fosforo); }
         </div>
         <div class="leitura">
           <dt>Memória episódica</dt>
-          <dd id="v-l4">06:10</dd>
-          <small>nota diária, sem intervenção</small>
+          <dd id="v-l4">9</dd>
+          <small id="v-l4-obs">notas diárias, geradas sem intervenção</small>
         </div>
         <div class="leitura">
-          <dt>Mesa de agentes</dt>
-          <dd id="v-mesa">3</dd>
-          <small>processos em worktrees isoladas</small>
+          <dt>Serviços de pé</dt>
+          <dd id="v-svc">6/6</dd>
+          <small>agentes, RAG, barramento e gateway</small>
         </div>
       </dl>
       <div class="painel-rodape">
@@ -438,8 +438,26 @@ footer a:hover { color: var(--ds-fosforo); }
     const põe = (id, v) => { if (v != null) document.getElementById(id).textContent = v; };
     põe('v-uptime', s.uptime_dias);
     põe('v-chunks', s.chunks?.toLocaleString('pt-BR'));
-    põe('v-l4', s.l4_hora);
-    põe('v-mesa', s.agentes);
+    põe('v-l4', s.l4_total_notas);
+    if (s.servicos_ativos != null && s.servicos_total != null) {
+      põe('v-svc', s.servicos_ativos + '/' + s.servicos_total);
+    }
+
+    // A corrente diária tem que estar viva para o número significar algo.
+    // Nota de mais de 2 dias = o cron parou — e a página DIZ isso, em vez de
+    // exibir um total que sugere saúde. Painel que só mostra o bom é decoração.
+    if (s.l4_ultima_nota) {
+      const dias = Math.floor((Date.now() - new Date(s.l4_ultima_nota + 'T00:00:00')) / 864e5);
+      const obs = document.getElementById('v-l4-obs');
+      if (dias > 2) {
+        obs.textContent = `última há ${dias} dias — corrente interrompida`;
+        obs.style.color = 'var(--ds-brasa)';
+        document.getElementById('v-l4').style.color = 'var(--ds-brasa)';
+      } else {
+        obs.textContent = 'notas diárias, geradas sem intervenção';
+      }
+    }
+
     if (s.gerado_em) {
       document.getElementById('v-quando').textContent =
         'leitura de ' + new Date(s.gerado_em).toLocaleString('pt-BR', {
