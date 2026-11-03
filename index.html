@@ -694,6 +694,7 @@
         <li><b>Sistema interno de licitações</b> — para uma distribuidora do setor de saúde</li>
         <li><b>Clones YouTube / WhatsApp</b> — Next.js 16 + TypeScript + Tailwind</li>
         <li><b>ResumeQuest · Batman Tickets</b> — apps e landing pages performáticas</li>
+        <li><b>FindIt</b> — achados e perdidos universitário (faculdade, em equipe): minha parte no backend Python/Flask</li>
       </ul>
     </div>
   </section>
@@ -767,6 +768,7 @@ const NODES = [
   {id:'wac', label:'WhatsApp Clone', cat:'pink', r:8, desc:'Interface dark do WhatsApp Web: sidebar de conversas, popup de emojis, indicador “digitando…”.', stack:['Next.js 16','TypeScript','Tailwind'], repo:'https://github.com/MarcusFernando/portfolio/tree/main/whatsapp-clone'},
   {id:'ytc', label:'YouTube Clone', cat:'pink', r:8, desc:'Home do YouTube com login/cadastro (Context API + localStorage) e menu de perfil interativo.', stack:['Next.js 16','TypeScript','Tailwind'], repo:'https://github.com/MarcusFernando/portfolio/tree/main/youtube-clone'},
   {id:'btc', label:'Batman Tickets', cat:'pink', r:7, desc:'Landing page estática responsiva com foco em performance e SEO (Core Web Vitals).', stack:['HTML5','Tailwind'], repo:'https://github.com/MarcusFernando/portfolio/tree/main/batman-tickets'},
+  {id:'fdt', label:'FindIt', cat:'pink', r:8, desc:'Achados e perdidos universitário, projeto de faculdade em equipe. Minha parte no backend (Python/Flask, arquitetura em camadas): login com JWT, cadastro de item perdido e encontrado e localização dos prédios da universidade via OpenStreetMap, com testes.', stack:['Python','Flask','PostgreSQL','JWT'], repo:'https://github.com/RefactoresLabs/backend-lostfinder'},
   {id:'ba', label:'Bone-Age', cat:'purple', r:9, desc:'Estimativa de idade óssea em radiografias pediátricas com redes neurais convolucionais — deep learning aplicado à saúde.', stack:['Python','CNN','visão computacional'], repo:null, priv:true},
   {id:'sb', label:'SocraticBrain', cat:'gold', r:9, desc:'Assistente de estudo com método socrático: RAG que devolve perguntas antes de respostas, guiando o raciocínio do aluno. Trabalho de conclusão de curso.', stack:['Python','RAG','FastAPI'], repo:'https://github.com/MarcusFernando'},
   // skills
@@ -778,12 +780,13 @@ const NODES = [
   {id:'wh', label:'whisper', cat:'skill', r:4.5}, {id:'tw', label:'tailwind', cat:'skill', r:4.5},
 ];
 const LINKS = [
-  ['marcus','eco'],['marcus','kit'],['marcus','lic'],['marcus','ba'],['marcus','sb'],['marcus','rq'],['marcus','wac'],['marcus','ytc'],['marcus','btc'],
+  ['marcus','eco'],['marcus','kit'],['marcus','lic'],['marcus','ba'],['marcus','sb'],['marcus','rq'],['marcus','wac'],['marcus','ytc'],['marcus','btc'],['marcus','fdt'],
   ['eco','rag'],['eco','py'],['eco','ma'],['eco','scr'],['eco','wh'],['eco','emb'],
   ['kit','ma'],['kit','mcp'],['kit','py'],
   ['lic','emb'],['lic','py'],['lic','fa'],['lic','rag'],
   ['sb','rag'],['sb','fa'],['sb','py'],
   ['ba','dl'],['ba','py'],
+  ['fdt','py'],
   ['rq','nx'],['rq','ts'],['wac','nx'],['wac','ts'],['wac','tw'],['ytc','nx'],['ytc','ts'],['ytc','tw'],['btc','tw'],
 ];
 
